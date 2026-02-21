@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import {read} from "./tools";
+import {read, write} from "./tools";
 
 type functionCall = {"name": string, "arguments": string};
 type toolCalls = {"id": string, "type": string, "function": functionCall};
@@ -10,6 +10,7 @@ interface toolMessage extends messageObj {"tool_call_id": string}
 
 const functionMap: Record<string, Function> = {
   "Read": read,
+  "Write": write,
 };
 
 async function main() {
@@ -48,6 +49,27 @@ async function main() {
         }
       }
     },
+    {
+      "type": "function",
+      "function": {
+        "name": "Write",
+        "description": "Write content to a file",
+        "parameters": {
+          "type": "object",
+          "required": ["file_path", "content"],
+          "properties": {
+            "file_path": {
+              "type": "string",
+              "description": "The path of the file to write to"
+            },
+            "content": {
+              "type": "string",
+              "description": "The content to write to the file"
+            }
+          }
+        }
+      }
+    }
   ]
 
   const messages: Array<messageObj> = [{role: "user", content: prompt}]
