@@ -4,6 +4,10 @@ import {read} from "./tools";
 type functionCall = {"name": string, "arguments": string};
 type toolCalls = {"id": string, "type": string, "function": functionCall};
 
+interface messageObj {"role": string, "content": string}
+interface aiMessage extends messageObj {"tool_calls": Array<toolCalls>}
+interface toolMessage extends messageObj {"tool_call_id": string}
+
 const functionMap: Record<string, Function> = {
   "Read": read,
 };
@@ -45,59 +49,71 @@ async function main() {
       }
     },
   ]
-
-  const response = await client.chat.completions.create({
-    model: "anthropic/claude-haiku-4.5",
-    messages: [{ role: "user", content: prompt }],
-    tools: tools,
-  });
-
-  if (!response.choices || response.choices.length === 0) {
-    throw new Error("no choices in response");
-  }
-
-  // You can use print statements as follows for debugging, they'll be visible when running tests.
-  console.error("Logs from your program will appear here!");
-
-  await run_tools(response)
-
-  // TODO: Uncomment the lines below to pass the first stage
-  console.log(response.choices[0].message.content);
-
   
+  const messages: Array<messageObj> = [{role: "user", content: prompt}]
+
+  do {
+    const response = await client.chat.completions.create({
+      model: "anthropic/claude-haiku-4.5",
+      messages: messages,
+      tools: tools,
+    });
+
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error("no choices in response");
+    }
+
+
+    // You can use print statements as follows for debugging, they'll be visible when running tests.
+    console.error("Logs from your program will appear here!");
+
+    const tool_response = await run_tools(response)
+    if (tool_response === null || tool_response.length === 0) {
+      console.log(response.choices[0].message.content);
+      break;
+    } else {
+      const assistantMsg = {"role": "assistant", "content": null, "tool_calls": JSON.stringify(response.choices[0].message.tool_calls)}
+      messages.push(...tool_response);
+    }
+  } while (true);
 }
 
-async function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
+async function run_tools(response: OpenAI.Chat.Completions.ChatCompletion): Promise<Array<toolMessage> | null> {
   const tool_calls : Array<toolCalls> = parse_tool_calls(response)
   if (tool_calls.length === 0) {
-    return
+    return null
   }
 
+  const tool_response = []
   for (let i: number = 0; i < tool_calls.length; i++) {
-    const fn_call = tool_calls[i].function
+    const fn_call = tool_calls[i].function;
+    const tool_call_id = tool_calls[i].id;
+    const fn_response = {"role": "tool", "tool_call_id": tool_call_id, "content": ""}
 
     if (fn_call == null) {
-      throw new Error("Invalid function call");
+      fn_response.content = "No function key present in tool_call";
+      tool_response.push(fn_response);
+      break;
     }
     const func = functionMap[fn_call.name]
 
     if (func == null) {
-      throw new Error("Invalid function call");
+      fn_response.content = "Function doesn't exist: " + fn_call.name;
+      tool_response.push(fn_response);
+      break;
     }
     
     const args = JSON.parse(fn_call.arguments)
 
-    await func(args)
+    const fn_result = await func(args);
+    fn_response.content = fn_result;
+    tool_response.push(fn_response);
   }
 
-  return true
+  return tool_response
 }
 
 function parse_tool_calls(response: OpenAI.Chat.Completions.ChatCompletion): Array<toolCalls> {
-
-  if (!response.choices || response.choices.length === 0) {
-    throw new Error("no choices in response");
-  }
 
   const responseJson = JSON.parse(JSON.stringify(response.choices[0].message));
   if (!responseJson.tool_calls || responseJson.tool_calls.length === 0) {
