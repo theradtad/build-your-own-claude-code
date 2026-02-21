@@ -67,7 +67,7 @@ async function main() {
   
 }
 
-function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
+async function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
   const tool_calls : Array<toolCalls> = parse_tool_calls(response)
   if (tool_calls.length === 0) {
     return
@@ -87,7 +87,7 @@ function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
     
     const args = JSON.parse(fn_call.arguments)
 
-    func(args)
+    await func(args)
   }
 
   return true
