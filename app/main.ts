@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import {read, write} from "./tools";
+import {bash, read, write} from "./tools";
 
 type functionCall = {"name": string, "arguments": string};
 type toolCalls = {"id": string, "type": string, "function": functionCall};
@@ -11,6 +11,7 @@ interface toolMessage extends messageObj {"tool_call_id": string}
 const functionMap: Record<string, Function> = {
   "Read": read,
   "Write": write,
+  "Bash": bash
 };
 
 async function main() {
@@ -65,6 +66,23 @@ async function main() {
             "content": {
               "type": "string",
               "description": "The content to write to the file"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "Bash",
+        "description": "Execute a shell command",
+        "parameters": {
+          "type": "object",
+          "required": ["command"],
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The command to execute"
             }
           }
         }

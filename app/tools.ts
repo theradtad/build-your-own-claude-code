@@ -1,3 +1,9 @@
+import { promisify } from "util";
+import { exec } from "child_process";
+
+const execPromise = promisify(exec);
+
+
 async function read(args: {file_path: string}): Promise<string> {
     try {
         const data = await Bun.file(args.file_path).text(); 
@@ -16,4 +22,13 @@ async function write(args: {file_path: string, content: string}): Promise<string
     }
 }
 
-export { read, write };
+async function bash(args: {command: string}) {
+    try {
+        const {stdout, stderr} = await execPromise(args.command)
+        return "Stdout: " + stdout + "; Stderr: " + stderr;
+    } catch(error) {
+        return "Error running command: " + error;
+    }
+}
+
+export { read, write, bash };
