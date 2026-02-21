@@ -62,7 +62,7 @@ async function main() {
   run_tools(response)
 
   // TODO: Uncomment the lines below to pass the first stage
-  // console.log(response.choices[0].message.content);
+  console.log(response.choices[0].message.content);
 
   
 }
