@@ -1,4 +1,12 @@
 import OpenAI from "openai";
+import {read} from "./tools";
+
+type functionCall = {"name": string, "arguments": string};
+type toolCalls = {"id": string, "type": string, "function": functionCall};
+
+const functionMap: Record<string, Function> = {
+  "Read": read,
+};
 
 async function main() {
   const [, , flag, prompt] = process.argv;
@@ -53,6 +61,73 @@ async function main() {
 
   // TODO: Uncomment the lines below to pass the first stage
   console.log(response.choices[0].message.content);
+
+  run_tools(response)
+}
+
+function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
+  const tool_calls : Array<toolCalls> = parse_tool_calls(response)
+  if (tool_calls.length === 0) {
+    throw new Error("Response doesn't contain tool calls");
+  }
+
+  for (let i: number = 0; i < tool_calls.length; i++) {
+    const fn_call = tool_calls[i].function
+
+    if (fn_call == null) {
+      throw new Error("Invalid function call");
+    }
+    const func = functionMap[fn_call.name]
+
+    if (func == null) {
+      throw new Error("Invalid function call");
+    }
+    
+    const args = JSON.parse(fn_call.arguments)
+
+    func(args)
+  }
+}
+
+function parse_tool_calls(response: OpenAI.Chat.Completions.ChatCompletion): Array<toolCalls> {
+
+  if (!response.choices || response.choices.length === 0) {
+    throw new Error("no choices in response");
+  }
+
+  const responseJson = JSON.parse(JSON.stringify(response.choices[0].message));
+  if (!responseJson.tool_calls || responseJson.tool_calls.length === 0) {
+    return new Array();
+  }
+
+  return responseJson.tool_calls;
+  
 }
 
 main();
+
+
+// const response : OpenAI.Chat.Completions.ChatCompletion = {
+//   "choices": [
+//     {
+//       "index": 0,
+//       "message": {
+//         "role": "assistant",
+//         "content": null,
+//         "tool_calls": [
+//           {
+//             "id": "call_abc123",
+//             "type": "function",
+//             "function": {
+//               "name": "Read",
+//               "arguments": "{\"file_path\": \"/mnt/c/Users/anura/Storage/Interests/claude_code/codecrafters-claude-code-typescript/README.md\"}"
+//             }
+//           }
+//         ]
+//       },
+//       "finish_reason": "tool_calls"
+//     }
+//   ]
+// }
+
+// run_tools(response)
