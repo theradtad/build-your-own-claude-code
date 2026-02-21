@@ -1,8 +1,6 @@
-import fs from "fs/promises"
-
 async function read(args: {file_path: string}) {
     try {
-        const data = await fs.readFile(args.file_path, {encoding: "utf8"}); 
+        const data = await Bun.file(args.file_path).text(); 
         process.stdout.write(data)
     } catch (error) {
         console.log("Failed to read file with error: " + error)

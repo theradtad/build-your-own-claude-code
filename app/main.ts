@@ -104,30 +104,30 @@ function parse_tool_calls(response: OpenAI.Chat.Completions.ChatCompletion): Arr
   
 }
 
-main();
+// main();
 
 
-// const response : OpenAI.Chat.Completions.ChatCompletion = {
-//   "choices": [
-//     {
-//       "index": 0,
-//       "message": {
-//         "role": "assistant",
-//         "content": null,
-//         "tool_calls": [
-//           {
-//             "id": "call_abc123",
-//             "type": "function",
-//             "function": {
-//               "name": "Read",
-//               "arguments": "{\"file_path\": \"/mnt/c/Users/anura/Storage/Interests/claude_code/codecrafters-claude-code-typescript/README.md\"}"
-//             }
-//           }
-//         ]
-//       },
-//       "finish_reason": "tool_calls"
-//     }
-//   ]
-// }
+const response : OpenAI.Chat.Completions.ChatCompletion = {
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_abc123",
+            "type": "function",
+            "function": {
+              "name": "Read",
+              "arguments": "{\"file_path\": \"/mnt/c/Users/anura/Storage/Interests/claude_code/codecrafters-claude-code-typescript/README.md\"}"
+            }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ]
+}
 
-// run_tools(response)
+run_tools(response)
