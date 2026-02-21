@@ -4,7 +4,7 @@ import {read} from "./tools";
 type functionCall = {"name": string, "arguments": string};
 type toolCalls = {"id": string, "type": string, "function": functionCall};
 
-interface messageObj {"role": string, "content": string}
+interface messageObj {"role": string, "content": string | null}
 interface aiMessage extends messageObj {"tool_calls": Array<toolCalls>}
 interface toolMessage extends messageObj {"tool_call_id": string}
 
@@ -49,7 +49,7 @@ async function main() {
       }
     },
   ]
-  
+
   const messages: Array<messageObj> = [{role: "user", content: prompt}]
 
   do {
@@ -72,7 +72,8 @@ async function main() {
       console.log(response.choices[0].message.content);
       break;
     } else {
-      const assistantMsg = {"role": "assistant", "content": null, "tool_calls": JSON.stringify(response.choices[0].message.tool_calls)}
+      const assistantMsg = {"role": "assistant", "content": null, "tool_calls": response.choices[0].message.tool_calls}
+      messages.push(assistantMsg)
       messages.push(...tool_response);
     }
   } while (true);
