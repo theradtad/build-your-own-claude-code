@@ -58,6 +58,8 @@ async function main() {
 
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   // console.error("Logs from your program will appear here!");
+
+  console.log("1. In main");
   run_tools(response)
 
   // TODO: Uncomment the lines below to pass the first stage
@@ -68,6 +70,7 @@ async function main() {
 
 function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
   const tool_calls : Array<toolCalls> = parse_tool_calls(response)
+  console.log("3. In run tool calls")
   if (tool_calls.length === 0) {
     return
   }
@@ -86,12 +89,14 @@ function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
     
     const args = JSON.parse(fn_call.arguments)
 
+    console.log("4. Calling function")
     func(args)
   }
 }
 
 function parse_tool_calls(response: OpenAI.Chat.Completions.ChatCompletion): Array<toolCalls> {
 
+  console.log("2. In parse tool calls");
   if (!response.choices || response.choices.length === 0) {
     throw new Error("no choices in response");
   }
