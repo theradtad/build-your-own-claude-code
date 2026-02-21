@@ -67,10 +67,10 @@ async function main() {
   
 }
 
-function run_tools(response: OpenAI.Chat.Completions.ChatCompletion): boolean {
+function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
   const tool_calls : Array<toolCalls> = parse_tool_calls(response)
   if (tool_calls.length === 0) {
-    return false
+    return
   }
 
   for (let i: number = 0; i < tool_calls.length; i++) {
@@ -89,8 +89,6 @@ function run_tools(response: OpenAI.Chat.Completions.ChatCompletion): boolean {
 
     func(args)
   }
-
-  return true
 }
 
 function parse_tool_calls(response: OpenAI.Chat.Completions.ChatCompletion): Array<toolCalls> {
