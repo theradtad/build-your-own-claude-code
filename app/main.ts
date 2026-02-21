@@ -60,7 +60,7 @@ async function main() {
   console.error("Logs from your program will appear here!");
 
   // TODO: Uncomment the lines below to pass the first stage
-  console.log(response.choices[0].message.content);
+  // console.log(response.choices[0].message.content);
 
   run_tools(response)
 }
