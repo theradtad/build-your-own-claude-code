@@ -68,7 +68,7 @@ async function main() {
 function run_tools(response: OpenAI.Chat.Completions.ChatCompletion) {
   const tool_calls : Array<toolCalls> = parse_tool_calls(response)
   if (tool_calls.length === 0) {
-    throw new Error("Response doesn't contain tool calls");
+    return
   }
 
   for (let i: number = 0; i < tool_calls.length; i++) {
